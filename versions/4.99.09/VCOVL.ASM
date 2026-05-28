@@ -1154,7 +1154,7 @@ GetDOSColor	PROC	NEAR
 		JB	@@NewLine		; gety() < Lines
 		DEC	AH
 		MOV	AL,0
-		CALL	Cursor			; gotoxy(0, Lines - 1)
+		CALL	gotoxy			; gotoxy(0, Lines - 1)
 
   @@NewLine:
 		MOV	AX,0E0Dh
@@ -1288,7 +1288,7 @@ SaveScreen	ENDP
 		MOV	DS:CharSize,AH
 		CALL	SavMous
 		MOV	AL,0
-		CALL	CurMous
+		CALL	ShowMouse
 		MOV	SI,1
 		JMP	F69_10
 
@@ -2941,9 +2941,9 @@ RunCmd13:	XOR	BX,BX
 		CALL	Window
 		CALL	SavMous
 		MOV	AL,0
-		CALL	CurMous
+		CALL	ShowMouse
 		MOV	AH,DS:DosLin
-		CALL	Cursor
+		CALL	gotoxy
 		OR	CL,CL
 		JNZ	RunCmd14
 		MOV	AX,0E0Ah
@@ -3352,10 +3352,10 @@ ExitVC		PROC	NEAR
 		XOR	BX,BX
 		CALL	Window
 		MOV	AL,0
-		CALL	CurMous
+		CALL	ShowMouse
 		MOV	AH,DS:DosLin
 		DEC	AH
-		CALL	Cursor
+		CALL	gotoxy
 		MOV	AL,0
 		JMP	QuitVC
 ExitVC		ENDP

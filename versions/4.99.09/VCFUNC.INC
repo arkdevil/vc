@@ -712,7 +712,7 @@ F16_02:		MOV	DS:KeyBar,1
 		CALL	Cursor1
 		CALL	SavMous
 		MOV	AL,0
-		CALL	CurMous
+		CALL	ShowMouse
 		JMP	SetDOSPromptRow
 
 F17_00:		PUSH	DS			; ^R
@@ -1973,7 +1973,7 @@ DriveCursor	PROC	NEAR
 		MOV	AL,AH
 		PUSH	ES
 		CALL	BasAdr
-		CALL	MvsColr
+		CALL	ColorFill
 		POP	ES
 		PUSH	BX
 		MOV	AX,ES:DriveType
@@ -1988,7 +1988,7 @@ DriveCursor	PROC	NEAR
 		CALL	Color
 		MOV	AL,AH
 		CALL	BasAdr
-		CALL	MvsColr
+		CALL	ColorFill
 		POP	BX
 		CALL	Window
 		RET
@@ -2478,7 +2478,7 @@ F77_01:		PUSH	DS
 		CALL	Window
 		MOV	AX,ES:SearchCur0
 		ADD	AX,BX
-		CALL	Cursor
+		CALL	gotoxy
 		POP	BX
 		POP	DX
 		POP	DS

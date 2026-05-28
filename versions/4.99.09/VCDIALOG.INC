@@ -2096,7 +2096,7 @@ InpStr		PROC	NEAR
 		POP	DX
 		LEA	AX,[BX+DI]
 		SUB	AX,DS:[SI-3]
-		CALL	Cursor
+		CALL	gotoxy
 		MOV	AL,DL
 		CALL	Input
 		CMP	AH,0FCh
@@ -2429,7 +2429,7 @@ Select		PROC	NEAR
   @@SetCur:	PUSH	AX			; Cursor
 		MOV	AX,BX
 		ADD	AH,CH
-		CALL	Cursor
+		CALL	gotoxy
 		POP	AX
 		CMP	AL,0
 		JZ	@@Input
@@ -2538,7 +2538,7 @@ FlipFl		PROC	NEAR
 		USES	DX,DI
 		MOV	CH,AL
 		MOV	AX,BX
-		CALL	Cursor
+		CALL	gotoxy
   @@Input:	MOV	AL,CH
 		CALL	Input
 		CMP	AL,' '
@@ -2775,7 +2775,7 @@ MnMn40		PROC	NEAR			; Show menus
 		MOV	CL,DL
 		MOV	CH,0
 		PUSH	DI
-		CALL	MvsColr
+		CALL	ColorFill
 		POP	DI
 		POP	CX
 		PUSH	CX
@@ -2798,7 +2798,7 @@ MnMn41		PROC	NEAR			; Show current menu
 		ADD	CX,CX
 		ADD	DI,CX
 		MOV	CL,CS:[SI]
-		CALL	MvsColr
+		CALL	ColorFill
 		RET
 MnMn41		ENDP
 

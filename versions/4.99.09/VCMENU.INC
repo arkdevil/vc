@@ -961,7 +961,7 @@ F40_10		PROC	NEAR
 		CALL	BasAdr
 		PUSH	DI
 		PUSH	CX
-		CALL	MvsColr
+		CALL	ColorFill
 		POP	CX
 		POP	DI
 F40_11:		MOV	AL,ES:[DI]
@@ -1010,7 +1010,7 @@ F40_31:		MOV	AH,MnuDr_C
 		MOV	CL,DL
 		SUB	CL,4
 		MOV	CH,0
-		CALL	MvsColr
+		CALL	ColorFill
 		MOV	AH,MnuMi_C
 		CALL	Color
 		MOV	AL,'-'
@@ -1774,7 +1774,7 @@ F59_06:		MOV	AH,AL
 		JNZ	Func04
 		CALL	SavMous
 		MOV	AL,0
-		CALL	CurMous
+		CALL	ShowMouse
 		MOV	SI,DS:ListCursor
 		ADD	SI,SI
 		MOV	AX,WORD PTR TmpBuf[SI]
@@ -1794,7 +1794,7 @@ F69_00:		PUSH	ES			; Alt F9 - EGA lines
 		JZ	Func04
 		CALL	SavMous
 		MOV	AL,0
-		CALL	CurMous
+		CALL	ShowMouse
 		MOV	AL,DS:ScrMod
 		MOV	AH,0
 		INT	10h
