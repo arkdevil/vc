@@ -9,6 +9,7 @@
 ;---------------------------------------------------------------
 ;
 ;#define BDA_vpage_ofs MK_FP(0x40, 0x4E)
+;#define SYNC_MODE 0 // CGA snow workaround
 ;#define ASYNC_MODE 1
 ;#define AUTO_MODE 2
 ;
@@ -18,8 +19,9 @@
 ; if (MonoMode || SnowMod == ASYNC_MODE ||
 ;      (SnowMod == AUTO_MODE && TstEGA)) {
 ;     NoSnow = true
-; } else {
-;     // assume CGA if display disabled (in retrace) for 7 test cycles
+; } else { // SYNC_MODE (CGA snow workaround)
+;     // assume CRT monitor if display disabled (in retrace) for 7 test cycles.
+;     // Laptops with CGA compatible cards and LCD monitors have short blank periods.
 ;     for (i = 32768; i > 0; i--) {
 ;          _disable()
 ;          for (c = 7; c > 0 && inp(0x3DA) & 1; c--) ;
@@ -78,7 +80,7 @@ ScreenParms	PROC	FAR
 		IN	AL,DX
 		TEST	AL,1
 		JZ	@@RetraceNext
-		LOOP	@@RetraceEndWait	; test cycle ~40 clocks on 8086
+		LOOP	@@RetraceEndWait	; test cycle ~30 clocks on 8086
 		MOV	AH,0			; enable Snow workaround
 
   @@SetSnowMode:
@@ -176,7 +178,7 @@ ChgCur		PROC	FAR
 		CMP	ES:ScrMod,7
 		JNE	@@LapTop
 		MOV	CX,0B0Ch
-  @@LapTop:	CMP	ES:ColTyp,2
+  @@LapTop:	CMP	ES:DispType,d_LapTop
 		JNE	@@SetCur
 		MOV	CH,0
   @@SetCur:	MOV	AH,1
@@ -546,36 +548,51 @@ MovScr		PROC	NEAR
 MovScr		ENDP
 
 ;---------------------------------------------------------------
-;	Get color
-;		   AH - color number
+;	Get color of ui element
+;		   AH - ui element
 ;	Return:	   AH - color
 ;---------------------------------------------------------------
 Color		PROC	FAR
 		USES	DI,ES
 		MOV	ES,CS:DataSegment
-		CALL	ColAddr
+		CALL	GetColorAddr
 		MOV	AH,ES:[DI]
 		RET
 Color		ENDP
 
-ColAddr		PROC	FAR
+;---------------------------------------------------------------
+;	Get pointer to color of ui element using current palette
+;		   AH - ui element
+;	Return:	   ES:DI - pointer to color
+;---------------------------------------------------------------
+;
+; if (DispType > d_LapTop) pal = d_Color
+;
+; // palettes: 0 - Mono(16gray), 1 == 3 - MonoMode, 2 - Color, 4 == 5 - LapTop
+; return &ColTab[colorname][pal * 2 + MonoMode]
+;
+GetColorAddr	PROC	FAR
 		USES	AX
 		MOV	AL,6
-		MUL	AH
+		MUL	AH			; colorname *= 6
 		MOV	DI,AX
-		MOV	AL,ES:ColTyp
+		MOV	AL,ES:DispType
 		CMP	AL,3
 		JB	@@ColOffs
-		MOV	AL,1
-  @@ColOffs:	CBW
-		ADD	AX,AX
+		MOV	AL,d_Color
+
+  @@ColOffs:
+		CBW
+		ADD	AX,AX			; pal = DispType * 2
 		CMP	ES:MonoMode,0
 		JZ	@@ColAdr
 		INC	AX
-  @@ColAdr:	ADD	DI,AX
+
+  @@ColAdr:
+		ADD	DI,AX
 		ADD	DI,OFFSET ColTab
 		RET
-ColAddr		ENDP
+GetColorAddr	ENDP
 
 ;---------------------------------------------------------------
 ;	Shadow
@@ -600,7 +617,7 @@ Shadow		PROC	FAR
 Shadow		ENDP
 
 ;---------------------------------------------------------------
-;	Fill color
+;	Fill with color
 ;		   AL - color
 ;		ES:DI - buffer to fill
 ;---------------------------------------------------------------
