@@ -56,7 +56,7 @@ EMS		EQU	3
 ; Display types
 d_Mono		EQU	0		; 16gray
 d_Color		EQU	1
-d_LapTop	EQU	2
+d_LCD	EQU	2
 
 ;---------------------- Global structures ----------------------
 ; Far address structure definition.
@@ -335,7 +335,7 @@ WCBdef		ENDS
 
 ;------------------------- Data segment ------------------------
 MainDat		STRUC
-ColTab		DB	6*LenColr DUP(?)	; Color table (6 palettes): 0 - Mono(16gray), 1 == 3 - MonoMode, 2 - Color, 4 == 5 - LapTop
+ColTab		DB	6*LenColr DUP(?)	; Color table (6 palettes): 0 - Mono(16gray), 1 == 3 - MonoMode, 2 - Color, 4 == 5 - LCD
 FulScr		DB	?			; Full screen
 PanelSize	DB	?			; Size of panels in non full screen mode
 MenuVs		DB	?			; Menu always visible
@@ -348,7 +348,7 @@ MiniSta		DB	?			; Mini status
 Clock		DB	?			; Clock
 AutoCD		DB	?			; Auto change dir
 AutoSav		DB	?			; Auto save setup
-DispType	DB	?			; Monochrome(16gray) / Color / LapTop
+DispType	DB	?			; Monochrome(16gray) / Color / LCD
 BlDelay		DB	?			; Screen blank delay
 LoadFl		DB	?			; Small mode
 UseSwap		DB	?			; Enable swap file
@@ -450,7 +450,7 @@ ScrPage		DB	?			; Current screen page number
 TstEGA		DB	?			; 1 if EGA or VGA present
 ModeFlag	DB	?			; Error setting video mode
 MonoMode	DB	?			; Monochrome mode
-NoSnow		DB	?			; Snow on/off
+SkipCGASnowFix	DB	?			; 1 if no need for Snow workaround
 ExtKeyb		DB	?			; Extended keyboard
 StdIn		DB	?			; Input through INT 21h
 StdFile		DB	?			; Input from file

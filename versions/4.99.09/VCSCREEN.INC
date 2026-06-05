@@ -18,7 +18,7 @@
 ;
 ; if (MonoMode || SnowMod == ASYNC_MODE ||
 ;      (SnowMod == AUTO_MODE && TstEGA)) {
-;     NoSnow = true
+;     SkipCGASnowFix = true
 ; } else { // SYNC_MODE (CGA snow workaround)
 ;     // assume CRT monitor if display disabled (in retrace) for 7 test cycles.
 ;     // Laptops with CGA compatible cards and LCD monitors have short blank periods.
@@ -28,7 +28,7 @@
 ;          _enable()
 ;          if (c == 0) break
 ;     }
-;     NoSnow = (c != 0) ? true : false
+;     SkipCGASnowFix = (c != 0) ? true : false
 ; }
 ;
 ; GetVideoMode(&mode, &vpage, &cols)
@@ -39,7 +39,7 @@
 ; if (TopView_GetShadowBuf(Screen.Segm) != Screen.Segm) {
 ;     Screen.Segm = TopView_GetShadowBuf()
 ;     TopView = true
-;     NoSnow = true
+;     SkipCGASnowFix = true
 ; }
 ;
 		.CODE	Subs
@@ -85,7 +85,7 @@ ScreenParms	PROC	FAR
 
   @@SetSnowMode:
 		STI
-		MOV	DS:NoSnow,AH
+		MOV	DS:SkipCGASnowFix,AH
 		XOR	DI,DI			; Screen Offset
 		MOV	AH,0Fh
 		INT	10h
@@ -114,7 +114,7 @@ ScreenParms	PROC	FAR
 		CMP	CX,BX
 		JE	@@SetSegm
 		MOV	AL,1
-		MOV	DS:NoSnow,AL
+		MOV	DS:SkipCGASnowFix,AL
 
   @@SetSegm:
 		MOV	DS:Screen.Segm,CX
@@ -165,27 +165,45 @@ Cursor1		PROC	FAR
 Cursor1		ENDP
 
 ;---------------------------------------------------------------
-;	Get cursor size & set it
+;	Adjust cursor size depending on video mode and display type(LCD)
 ;	Return:	CX - cursor size
 ;---------------------------------------------------------------
-ChgCur		PROC	FAR
+;
+; GetCurPos(0/*vpage*/, &cursor)
+; if (ScrMod == 7) {
+;     cursor.start = 11
+;     cursor.end = 12
+; } else {
+;     cursor.start = 6
+;     cursor.end = 7
+; }
+; // make cursor more visible on LCD monitor
+; if (DispType == d_LCD) cursor.start = 0
+;
+; SetCurSize(&cursor)
+;
+AdjustCursorSize	PROC	FAR
 		USES	BX,DX,BP
 		MOV	BH,0
 		MOV	AH,3
-		INT	10h
+		INT	10h			; GetCurPos()
 		PUSH	CX
 		MOV	CX,0607h
 		CMP	ES:ScrMod,7
-		JNE	@@LapTop
+		JNE	@@CheckLCD
 		MOV	CX,0B0Ch
-  @@LapTop:	CMP	ES:DispType,d_LapTop
+
+  @@CheckLCD:
+		CMP	ES:DispType,d_LCD
 		JNE	@@SetCur
 		MOV	CH,0
-  @@SetCur:	MOV	AH,1
-		INT	10h
+
+  @@SetCur:
+		MOV	AH,1
+		INT	10h			; SetCurSize()
 		POP	CX
 		RET
-ChgCur		ENDP
+AdjustCursorSize	ENDP
 
 ;---------------------------------------------------------------
 ;	Hide cursor - move cursor to row outside screen
@@ -398,10 +416,10 @@ ResUser		ENDP
 ;     // copy full rows (set x = 0). Equivalent of BasAdr(0, y)
 ;     from = MK_FP(FP_SEG(from), FP_OFF(from) - x * 2)
 ;     to = MK_FP(FP_SEG(Screen), FP_OFF(Screen) - x * 2)
-;     MovScr(to, from, Columns/*w*/, h, NoSnow)
+;     MovScr(to, from, Columns/*w*/, h, SkipCGASnowFix)
 ; } else { // inlined for single line
 ;     for (i = 0; i < w; i += 2) {
-;          if (NoSnow == false) {
+;          if (SkipCGASnowFix == false) {
 ;              for (; inp(0x3DA) & 1; ) ; // wait for end of retrace
 ;              _disable()
 ;              for (; inp(0x3DA) & 1 == 0; ) ; // wait for start of retrace
@@ -426,7 +444,7 @@ Window		PROC	FAR
 		PUSH	ES
 		POP	DS
 		POP	ES
-		MOV	AL,ES:NoSnow
+		MOV	AL,ES:SkipCGASnowFix
 		MOV	CL,DL			; real_w
 		MOV	DL,ES:Columns		; w = Columns
 		LES	DI,ES:Screen		; to = Screen[0]
@@ -455,7 +473,7 @@ Window		PROC	FAR
 
   @@Next:
 		OR	AH,AH
-		JNZ	@@Move			; NoSnow = true
+		JNZ	@@Move			; SkipCGASnowFix = true
 
   @@RetraceEndWait:
 		IN	AL,DX
@@ -492,7 +510,7 @@ Window		ENDP
 ;	Save screen
 ;---------------------------------------------------------------
 ;
-; MovScr(ScreenBuf, Screen, Columns/*w*/, Lines/*h*/, NoSnow)
+; MovScr(ScreenBuf, Screen, Columns/*w*/, Lines/*h*/, SkipCGASnowFix)
 ;
 SavScr		PROC	FAR
 		USES	AX,BX,CX,DX,SI,DI,DS,ES
@@ -500,7 +518,7 @@ SavScr		PROC	FAR
 		MOV	SI,ES:Screen.Offs
 		MOV	DH,ES:Lines
 		MOV	DL,ES:Columns
-		MOV	AL,ES:NoSnow
+		MOV	AL,ES:SkipCGASnowFix
 		MOV	ES,ES:ScreenBuf
 		XOR	DI,DI
 		CALL	MovScr
@@ -511,35 +529,70 @@ SavScr		ENDP
 ;	Move screen bytes
 ;		   DH - number of lines
 ;		   DL - width of screen
-;		   AL - snow
+;		   AL - SkipCGASnowFix flag
 ;		DS:SI => ES:DI
 ;---------------------------------------------------------------
+;
+; while (h > 0) {
+;    rows = (h < 7) ? h : 7 // transfer up to 7 rows in one vertical retrace
+;    scrsize = w * rows
+;    if (SkipCGASnowFix == false) {
+;        for (; inp(0x3DA) & 1; ) ; // wait for end of retrace
+;        for (;;) {
+;             _enable()
+;             _disable()
+;             // wait for start of retrace
+;             if (inp(0x3DA) & 1 == 0) continue
+;             // make sure it's vertical retrace on CRT monitor
+;             for (c = 10; c > 0 && inp(0x3DA) & 1; c--) ;
+;             if (c == 0) break
+;        }
+;    }
+;    memcpy(to, from, scrsize)
+;    _enable()
+;    h -= rows
+; }
+;
 MovScr		PROC	NEAR
 		CLD
 		MOV	BL,AL
 		MOV	BH,7			; Const1 ???
-  @@NextBlock:	CMP	DH,BH
+
+  @@NextBlock:
+		CMP	DH,BH
 		JAE	@@BlockSize
 		MOV	BH,DH
-  @@BlockSize:	MOV	AL,DL
+
+  @@BlockSize:
+		MOV	AL,DL
 		MUL	BH
 		PUSH	AX
 		OR	BL,BL
 		JNZ	@@MoveBlock		; no Snow workaround
 		PUSH	DX
 		MOV	DX,03DAh
-  @@ChkSnow1:	IN	AL,DX
+
+  @@RetraceEndWait:
+		IN	AL,DX
 		TEST	AL,1
-		JNZ	@@ChkSnow1
-  @@ChkSnow2:	STI
+		JNZ	@@RetraceEndWait
+
+  @@RetraceStartWait:
+		STI
 		MOV	CX,10			; Const2 ???
 		CLI
-  @@ChkSnow3:	IN	AL,DX
+
+  @@InRetrace:
+		IN	AL,DX
 		TEST	AL,1
-		JZ	@@ChkSnow2
-		LOOP	@@ChkSnow3
+		JZ	@@RetraceStartWait
+		LOOP	@@InRetrace
+
+  @@VRetrace:					; display disabled set for too long for horiz. retrace
 		POP	DX
-  @@MoveBlock:	POP	CX
+
+  @@MoveBlock:
+		POP	CX
 		REP	MOVSW
 		STI
 		SUB	DH,BH
@@ -566,9 +619,9 @@ Color		ENDP
 ;	Return:	   ES:DI - pointer to color
 ;---------------------------------------------------------------
 ;
-; if (DispType > d_LapTop) pal = d_Color
+; if (DispType > d_LCD) pal = d_Color
 ;
-; // palettes: 0 - Mono(16gray), 1 == 3 - MonoMode, 2 - Color, 4 == 5 - LapTop
+; // palettes: 0 - Mono(16gray), 1 == 3 - MonoMode, 2 - Color, 4 == 5 - LCD
 ; return &ColTab[colorname][pal * 2 + MonoMode]
 ;
 GetColorAddr	PROC	FAR
