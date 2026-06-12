@@ -13,8 +13,7 @@ What's added beyond master:
   4.99.09 `VC.COM` — no DOS/QEMU needed. TASM remains the canonical
   toolchain; see `third_party/jwasm/README.md` for provenance and the
   known encoding differences.
-- `versions/4.99.09/` — minimal compile fixes squashed from
-  [arkdevil's PR](https://github.com/ddanila/vc/pull/1) (DGROUP overflow,
+- `versions/4.99.09/` — minimal compile fixes (DGROUP overflow,
   duplicated `DS:` prefix, encoding-safe rewrite of CP866 string data).
 - `build.sh` — wrapper that boots MS-DOS 4.0 in QEMU
   (`floppy-minimal.img` from [ddanila/msdos release 0.1](https://github.com/ddanila/msdos/releases/tag/0.1))
