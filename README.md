@@ -8,6 +8,11 @@ What's added beyond master:
 
 - `third_party/tasm` — submodule pointing at [zajo/TASM](https://github.com/zajo/TASM),
   providing TASM 4.1, TLINK 7.1, and Borland Make 4.0.
+- `third_party/jwasm` — vendored [JWasm](https://github.com/Baron-von-Riedesel/JWasm)
+  binaries (Linux x86_64, macOS arm64) for an additive native build of the
+  4.99.09 `VC.COM` — no DOS/QEMU needed. TASM remains the canonical
+  toolchain; see `third_party/jwasm/README.md` for provenance and the
+  known encoding differences.
 - `versions/4.99.09/` — minimal compile fixes squashed from
   [arkdevil's PR](https://github.com/ddanila/vc/pull/1) (DGROUP overflow,
   duplicated `DS:` prefix, encoding-safe rewrite of CP866 string data).
@@ -18,11 +23,12 @@ What's added beyond master:
 - `.github/workflows/build.yml` — CI matrix that runs the same build for
   4.05 and 4.99.09 inside `ghcr.io/ddanila/msdos/ci` with KVM, uploading
   `*.COM`/`*.EXE`/`*.OVL` as workflow artifacts.
-- `vendor/kvikdos`, `tests/`, top-level `Makefile`,
+- `third_party/kvikdos`, `tests/`, top-level `Makefile`,
   `.github/workflows/e2e.yml` — end-to-end test pipeline. Two layers per
   version: a kvikdos suite that drives the built binaries through a soft
-  8086 + DOS-syscall emulator, and a QEMU smoke test that boots real DOS
-  with the same artifacts.
+  8086 + DOS-syscall emulator (submodule pointing at the maintained
+  [ddanila/kvikdos](https://github.com/ddanila/kvikdos) fork), and a QEMU
+  smoke test that boots real DOS with the same artifacts.
 
 Local quick start:
 

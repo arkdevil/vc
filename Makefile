@@ -1,7 +1,7 @@
 # End-to-end test runner for VC.COM builds.
 #
 # The kvikdos suite is a set of C test binaries that link against the
-# kvikdos 8086 emulator (vendor/kvikdos), boot a VC.COM via the test
+# kvikdos 8086 emulator (third_party/kvikdos), boot a VC.COM via the test
 # harness, push keystrokes, and read back the text screen. Tests are
 # selected per VC version: 4.99.09 ships without the editor, so the
 # editor-specific tests are excluded from its group.
@@ -23,7 +23,7 @@
         test-kvikdos test-kvikdos-4.05 test-kvikdos-4.99.09 \
         test-qemu-4.05 test-qemu-4.99.09
 
-KVIKDOS_DIR = vendor/kvikdos
+KVIKDOS_DIR = third_party/kvikdos
 
 # Tests that work against original VC.COM for both 4.05 and 4.99.
 TEST_GROUPS_BASE = \

@@ -12,7 +12,7 @@ Both run from the same top-level `Makefile`.
 
 ## Layout
 
-* `vendor/kvikdos` — submodule (the `improvements` branch tip).
+* `third_party/kvikdos` — submodule (the `improvements` branch tip).
 * `tests/test_common.h`, `tests/fixtures/`, `tests/test_*.c` — the
   kvikdos suite. `setup_fixtures()` lays out a temp dir per test;
   when `VC_OVL_PATH` is set it also drops `KVIKPROG.OVL`, `VC.OVL`,

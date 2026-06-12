@@ -139,7 +139,7 @@ static void test_memory_info(void) {
 
   /* Alt+F5 opens the memory-info dialog (MCB chain walk via
      INT 21h/52h → INVARS-2). The soft CPU now synthesises the
-     INVARS/MCB region in cpu_read (see vendor/kvikdos/cpu8086.c)
+     INVARS/MCB region in cpu_read (see third_party/kvikdos/cpu8086.c)
      so the walk can identify VC's own PSP. */
   kviktest_send_key(ALT_F5);
   usleep(500000);

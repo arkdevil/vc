@@ -11,7 +11,7 @@
 #ifndef TEST_COMMON_H
 #define TEST_COMMON_H
 
-#include "../vendor/kvikdos/test_harness.h"
+#include "../third_party/kvikdos/test_harness.h"
 
 #include <signal.h>
 #include <stdio.h>
