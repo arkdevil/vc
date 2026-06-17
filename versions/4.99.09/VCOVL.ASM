@@ -1079,7 +1079,7 @@ SetLines_CharHeight	ENDP
 		CALL	ScreenParms
 
 DetectDesqView	PROC	NEAR
-		MOV	CX,'DE'			; Check DESQWIEV
+		MOV	CX,'DE'			; Check DESQVIEW
 		MOV	DX,'SQ'
 		MOV	AX,2B01h
 		INT	21h

@@ -949,7 +949,7 @@ FindTable	PROC	FAR
 FindTable	ENDP
 
 ;---------------------------------------------------------------
-;	Searching/Result subfinction
+;	Searching/Result subfunction
 ;---------------------------------------------------------------
 		.DATA
 FindSub2_T	DW     0FFFFh, FindSubInit
@@ -1093,7 +1093,7 @@ FindSub2	ENDP
 ;		   DI - first line number
 ;		BL,BH - base of window
 ;	Return:	BL,BH - base of line
-;		DL,DH - size of line winwod
+;		DL,DH - size of line window
 ;---------------------------------------------------------------
 FndNameWidth	EQU	18
 
