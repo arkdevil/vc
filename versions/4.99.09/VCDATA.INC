@@ -164,7 +164,7 @@ FDR		STRUC
   WinSize	DD	?		; Size (low 32 bits)
 		DB	  8 DUP(?)	; Reserved
   WinLongName	DB	260 DUP(?)	; Full name
-  WinName	DB	 14 DUP(?)	; Short name
+  WinShortName	DB	 14 DUP(?)	; Short name
 FDR		ENDS
 
 ; Execute program block structure definition.
@@ -529,7 +529,7 @@ Quote		DB	?			; Quote next character
 BarPrev		DB	?			; Previous Key Bar
 OldCurDrv	DB	?			; Current drive when enter
 SftErr		DB	?			; Shift error boxes down
-BlocEr		DB	?			; Disable critical error messages
+BlockCritErrBox	DB	?			; Disable critical error messages
 PathEr		DB	?			; Error when reading current path
 RescanTree	DB	?			; Rescan tree
 MoveCurFlag	DB	?			; Cursor moved (Auto CD, Quick View)
